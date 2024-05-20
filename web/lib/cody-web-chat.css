@@ -9,21 +9,15 @@
     --vscode-font-family: -apple-system, BlinkMacSystemFont, 'Ubuntu', 'Droid Sans', 'Segoe WPC', 'Segoe UI', sans-serif;
 }
 
-body {
-    margin: 0;
-    height: 100vh;
-
+[data-cody-web-chat] {
+    height: 100%;
     background-color: var(--vscode-editor-background);
     font-size: var(--vscode-font-size);
     font-family: var(--vscode-font-family);
     color: var(--vscode-editor-foreground);
 }
 
-#root {
-    height: 100%;
-}
-
-a {
+[data-cody-web-chat] a {
     color: var(--vscode-textLink-foreground);
     text-decoration: none;
 }
