@@ -912,6 +912,7 @@ export class SourcegraphGraphQLAPIClient {
             fetch(url, {
                 method: 'POST',
                 body: JSON.stringify({ query, variables }),
+                credentials: 'include',
                 headers,
             })
                 .then(verifyResponseCode)
