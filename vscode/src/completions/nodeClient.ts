@@ -6,7 +6,7 @@
 import http from 'node:http'
 import https from 'node:https'
 
-import { agent } from '@sourcegraph/cody-shared'
+import { agent, getCompletionsModelConfig, googleChatClient } from '@sourcegraph/cody-shared'
 import {
     type CompletionCallbacks,
     type CompletionParameters,
@@ -17,7 +17,6 @@ import {
     contextFiltersProvider,
     customUserAgent,
     getTraceparentHeaders,
-    googleChatClient,
     groqChatClient,
     isError,
     logError,
@@ -63,15 +62,16 @@ export class SourcegraphNodeCompletionsClient extends SourcegraphCompletionsClie
 
             // TODO - Centralize this logic in a single place
             const [provider] = params.model?.split('/') ?? []
+            const config = getCompletionsModelConfig(params.model || '')
             if (provider === 'ollama') {
                 await ollamaChatClient(params, cb, this.completionsEndpoint, this.logger, signal)
                 return
             }
-            if (provider === 'google') {
+            if (provider === 'google' && config?.key) {
                 await googleChatClient(params, cb, this.completionsEndpoint, this.logger, signal)
                 return
             }
-            if (provider === 'groq') {
+            if (provider === 'groq' && config?.key) {
                 await groqChatClient(params, cb, this.completionsEndpoint, this.logger, signal)
                 return
             }

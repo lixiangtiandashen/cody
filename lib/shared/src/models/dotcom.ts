@@ -94,6 +94,32 @@ export const DEFAULT_DOT_COM_MODELS = [
         deprecated: false,
         uiGroup: ModelUIGroup.Speed,
     },
+    {
+        title: 'Gemini 1.5 Pro',
+        model: 'google/gemini-1.5-pro-latest',
+        provider: 'Google',
+        default: false,
+        codyProOnly: true,
+        usage: [ModelUsage.Chat, ModelUsage.Edit],
+        contextWindow: {
+            input: EXTENDED_CHAT_INPUT_TOKEN_BUDGET,
+            output: CHAT_OUTPUT_TOKEN_BUDGET,
+            context: { user: EXTENDED_USER_CONTEXT_TOKEN_BUDGET },
+        },
+        deprecated: false,
+        uiGroup: ModelUIGroup.Accuracy,
+    },
+    {
+        title: 'Gemini 1.5 Flash',
+        model: 'google/gemini-1.5-flash-latest',
+        provider: 'Google',
+        default: false,
+        codyProOnly: true,
+        usage: [ModelUsage.Chat, ModelUsage.Edit],
+        contextWindow: { input: CHAT_INPUT_TOKEN_BUDGET, output: CHAT_OUTPUT_TOKEN_BUDGET },
+        deprecated: false,
+        uiGroup: ModelUIGroup.Speed,
+    },
     // TODO (tom) Improve prompt for Mixtral + Edit to see if we can use it there too.
     {
         title: 'Mixtral 8x7B',
