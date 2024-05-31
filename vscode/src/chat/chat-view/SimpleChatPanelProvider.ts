@@ -218,7 +218,7 @@ export class SimpleChatPanelProvider implements vscode.Disposable, ChatSession {
         }
         this.codebaseStatusProvider = new CodebaseStatusProvider(
             this.editor,
-            this.config.experimentalSymfContext ? this.symf : null,
+            this.symf,
             enterpriseContext ? enterpriseContext.getCodebaseRepoIdMapper() : null
         )
         this.disposables.push(this.contextStatusAggregator.addProvider(this.codebaseStatusProvider))
@@ -590,7 +590,7 @@ export class SimpleChatPanelProvider implements vscode.Disposable, ChatSession {
                                   addEnhancedContext,
                                   providers: {
                                       localEmbeddings: this.localEmbeddings,
-                                      symf: this.config.experimentalSymfContext ? this.symf : null,
+                                      symf: this.symf,
                                       remoteSearch: this.remoteSearch,
                                   },
                                   contextRanking: this.contextRanking,
