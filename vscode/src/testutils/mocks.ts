@@ -837,7 +837,6 @@ export const DEFAULT_VSCODE_SETTINGS = {
     },
     commandCodeLenses: false,
     experimentalGuardrails: false,
-    experimentalSimpleChatContext: true,
     experimentalSupercompletions: false,
     experimentalTracing: false,
     experimentalGithubAccessToken: '',
