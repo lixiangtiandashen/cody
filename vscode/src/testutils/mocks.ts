@@ -839,7 +839,6 @@ export const DEFAULT_VSCODE_SETTINGS = {
     experimentalGuardrails: false,
     experimentalSimpleChatContext: true,
     experimentalSupercompletions: false,
-    experimentalOllamaChat: true,
     experimentalTracing: false,
     experimentalGithubAccessToken: '',
     experimentalCommitMessage: true,

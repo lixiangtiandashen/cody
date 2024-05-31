@@ -43,8 +43,6 @@ describe('getConfiguration', () => {
                         return true
                     case 'cody.experimental.localSymbols':
                         return true
-                    case 'cody.experimental.ollamaChat':
-                        return true
                     case 'cody.experimental.simpleChatContext':
                         return true
                     case 'cody.experimental.tracing':
@@ -128,7 +126,6 @@ describe('getConfiguration', () => {
             experimentalSupercompletions: false,
             experimentalTracing: true,
             experimentalGuardrails: true,
-            experimentalOllamaChat: true,
             experimentalCommitMessage: true,
             experimentalNoodle: false,
             experimentalGithubAccessToken: '',

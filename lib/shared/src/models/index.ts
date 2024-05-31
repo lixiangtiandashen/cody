@@ -78,9 +78,8 @@ export class ModelProvider {
      */
     private static localProviders: ModelProvider[] = []
 
-    public static async onConfigChange(enableOllamaModels: boolean): Promise<void> {
-        // Only fetch local models if user has enabled the config
-        ModelProvider.localProviders = enableOllamaModels ? await fetchLocalOllamaModels() : []
+    public static async onConfigChange(): Promise<void> {
+        ModelProvider.localProviders = await fetchLocalOllamaModels()
     }
 
     /**
