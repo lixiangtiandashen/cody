@@ -56,11 +56,11 @@ export class ChatPanelsManager implements vscode.Disposable {
     private activePanelProvider: SimpleChatPanelProvider | undefined = undefined
     private panelProviders: SimpleChatPanelProvider[] = []
 
-    private options: ChatPanelProviderOptions
+    private options: ChatPanelProviderOptions & SidebarViewOptions
 
     // Tree view for chat history
     public treeViewProvider = new TreeViewProvider('chat', featureFlagProvider)
-    public treeView
+    public treeView: vscode.TreeView<vscode.TreeItem>
 
     public supportTreeViewProvider = new TreeViewProvider('support', featureFlagProvider)
 
@@ -176,7 +176,6 @@ export class ChatPanelsManager implements vscode.Disposable {
         ) {
             emptyNewChatProvider.webviewPanel?.reveal()
             this.activePanelProvider = emptyNewChatProvider
-            this.options.contextProvider.webview = emptyNewChatProvider.webview
             void this.selectTreeItem(emptyNewChatProvider.sessionID)
             return emptyNewChatProvider
         }
@@ -203,7 +202,6 @@ export class ChatPanelsManager implements vscode.Disposable {
         provider.webviewPanel?.onDidChangeViewState(e => {
             if (e.webviewPanel.visible && e.webviewPanel.active) {
                 this.activePanelProvider = provider
-                this.options.contextProvider.webview = provider.webview
                 void this.selectTreeItem(provider.sessionID)
             }
         })
@@ -242,6 +240,7 @@ export class ChatPanelsManager implements vscode.Disposable {
             enterpriseContext: isConsumer ? null : this.enterpriseContext,
             models,
             guardrails: this.guardrails,
+            startTokenReceiver: this.options.startTokenReceiver,
         })
     }
 

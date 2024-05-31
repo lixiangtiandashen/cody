@@ -12,6 +12,7 @@ import {
     type ContextItem,
     ContextItemSource,
     type ContextItemWithContent,
+    DOTCOM_URL,
     type DefaultChatCommands,
     type EventSource,
     type FeatureFlagProvider,
@@ -66,6 +67,11 @@ import type { Span } from '@opentelemetry/api'
 import { captureException } from '@sentry/core'
 import type { TelemetryEventParameters } from '@sourcegraph/telemetry'
 import type { URI } from 'vscode-uri'
+import {
+    closeAuthProgressIndicator,
+    startAuthProgressIndicator,
+} from '../../auth/auth-progress-indicator'
+import type { startTokenReceiver } from '../../auth/token-receiver'
 import { getContextFileFromUri } from '../../commands/context/file-path'
 import { getContextFileFromCursor, getContextFileFromSelection } from '../../commands/context/selection'
 import type { EnterpriseContextFactory } from '../../context/enterprise-context-factory'
@@ -75,6 +81,7 @@ import type { ContextRankingController } from '../../local-context/context-ranki
 import { chatModel } from '../../models'
 import { migrateAndNotifyForOutdatedModels } from '../../models/modelMigrator'
 import { gitCommitIdFromGitExtension } from '../../repository/git-extension-api'
+import { AuthProviderSimplified } from '../../services/AuthProviderSimplified'
 import { recordExposedExperimentsToSpan } from '../../services/open-telemetry/utils'
 import type { MessageErrorType } from '../MessageProvider'
 import { startClientStateBroadcaster } from '../clientStateBroadcaster'
@@ -97,7 +104,6 @@ import { getEnhancedContext } from './context'
 import { DefaultPrompter } from './prompt'
 
 interface SimpleChatPanelProviderOptions {
-    config: ChatPanelConfig
     extensionUri: vscode.Uri
     authProvider: AuthProvider
     chatClient: ChatClient
@@ -110,6 +116,7 @@ interface SimpleChatPanelProviderOptions {
     featureFlagProvider: FeatureFlagProvider
     models: ModelProvider[]
     guardrails: Guardrails
+    startTokenReceiver?: typeof startTokenReceiver
 }
 
 export interface ChatSession {
@@ -159,6 +166,7 @@ export class SimpleChatPanelProvider implements vscode.Disposable, ChatSession {
     private readonly guardrails: Guardrails
     private readonly remoteSearch: RemoteSearch | null
     private readonly repoPicker: RemoteRepoPicker | null
+    private readonly startTokenReceiver: typeof startTokenReceiver | undefined
 
     private history = new ChatHistoryManager()
     private contextFilesQueryCancellation?: vscode.CancellationTokenSource
@@ -171,7 +179,6 @@ export class SimpleChatPanelProvider implements vscode.Disposable, ChatSession {
     }
 
     constructor({
-        config,
         extensionUri,
         authProvider,
         chatClient,
@@ -183,8 +190,8 @@ export class SimpleChatPanelProvider implements vscode.Disposable, ChatSession {
         models,
         guardrails,
         enterpriseContext,
+        startTokenReceiver,
     }: SimpleChatPanelProviderOptions) {
-        this.config = config
         this.extensionUri = extensionUri
         this.authProvider = authProvider
         this.chatClient = chatClient
@@ -197,6 +204,7 @@ export class SimpleChatPanelProvider implements vscode.Disposable, ChatSession {
         this.treeView = treeView
         this.chatModel = new SimpleChatModel(chatModel.get(authProvider, models))
         this.guardrails = guardrails
+        this.startTokenReceiver = startTokenReceiver
 
         if (TestSupport.instance) {
             TestSupport.instance.chatPanelProvider.set(this)
@@ -383,6 +391,107 @@ export class SimpleChatPanelProvider implements vscode.Disposable, ChatSession {
                     >
                 )
                 break
+            case 'auth': {
+                if (message.authKind === 'callback' && message.endpoint) {
+                    this.authProvider.redirectToEndpointLogin(message.endpoint)
+                    break
+                }
+                if (message.authKind === 'simplified-onboarding') {
+                    const endpoint = DOTCOM_URL.href
+
+                    let tokenReceiverUrl: string | undefined = undefined
+                    closeAuthProgressIndicator()
+                    startAuthProgressIndicator()
+                    tokenReceiverUrl = await this.startTokenReceiver?.(
+                        endpoint,
+                        async (token, endpoint) => {
+                            closeAuthProgressIndicator()
+                            const authStatus = await this.authProvider.auth({ endpoint, token })
+                            telemetryService.log(
+                                'CodyVSCodeExtension:auth:fromTokenReceiver',
+                                {
+                                    type: 'callback',
+                                    from: 'web',
+                                    success: Boolean(authStatus?.isLoggedIn),
+                                },
+                                {
+                                    hasV2Event: true,
+                                }
+                            )
+                            telemetryRecorder.recordEvent(
+                                'cody.auth.fromTokenReceiver.web',
+                                'succeeded',
+                                {
+                                    metadata: {
+                                        success: authStatus?.isLoggedIn ? 1 : 0,
+                                    },
+                                }
+                            )
+                            if (!authStatus?.isLoggedIn) {
+                                void vscode.window.showErrorMessage(
+                                    'Authentication failed. Please check your token and try again.'
+                                )
+                            }
+                        }
+                    )
+
+                    const authProviderSimplified = new AuthProviderSimplified()
+                    const authMethod = message.authMethod || 'dotcom'
+                    const successfullyOpenedUrl = await authProviderSimplified.openExternalAuthUrl(
+                        this.authProvider,
+                        authMethod,
+                        tokenReceiverUrl
+                    )
+                    if (!successfullyOpenedUrl) {
+                        closeAuthProgressIndicator()
+                    }
+                    break
+                }
+                // cody.auth.signin or cody.auth.signout
+                await vscode.commands.executeCommand(`cody.auth.${message.authKind}`)
+                break
+            }
+            case 'simplified-onboarding': {
+                if (message.onboardingKind === 'web-sign-in-token') {
+                    void vscode.window
+                        .showInputBox({ prompt: 'Enter web sign-in token' })
+                        .then(async token => {
+                            if (!token) {
+                                return
+                            }
+                            const authStatus = await this.authProvider.auth({
+                                endpoint: DOTCOM_URL.href,
+                                token,
+                            })
+                            if (!authStatus?.isLoggedIn) {
+                                void vscode.window.showErrorMessage(
+                                    'Authentication failed. Please check your token and try again.'
+                                )
+                            }
+                        })
+                    break
+                }
+                break
+            }
+            case 'troubleshoot/reloadAuth': {
+                await this.authProvider.reloadAuthStatus()
+                const nextAuth = this.authProvider.getAuthStatus()
+                telemetryService.log(
+                    'CodyVSCodeExtension:troubleshoot:reloadAuth',
+                    {
+                        success: Boolean(nextAuth?.isLoggedIn),
+                    },
+                    {
+                        hasV2Event: true,
+                    }
+                )
+                telemetryRecorder.recordEvent('cody.troubleshoot', 'reloadAuth', {
+                    metadata: {
+                        success: nextAuth.isLoggedIn ? 1 : 0,
+                    },
+                })
+                break
+            }
             default:
                 this.postError(new Error(`Invalid request type from Webview Panel: ${message.command}`))
         }

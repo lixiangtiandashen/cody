@@ -207,7 +207,6 @@ const register = async (
 
     const contextProvider = new ContextProvider(
         initialConfig,
-        editor,
         authProvider,
         localEmbeddings,
         enterpriseContextFactory.createRemoteSearch()
@@ -327,8 +326,6 @@ const register = async (
         // Chat Manager uses Simple Context Provider
         await chatManager.syncAuthStatus(authStatus)
         editorManager.syncAuthStatus(authStatus)
-        // Update context provider first it will also update the configuration
-        await contextProvider.syncAuthStatus()
         const parallelPromises: Promise<void>[] = []
         parallelPromises.push(featureFlagProvider.syncAuthStatus())
         // feature flag provider
