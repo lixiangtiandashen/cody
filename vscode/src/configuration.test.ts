@@ -35,8 +35,6 @@ describe('getConfiguration', () => {
                         return { '*': true }
                     case 'cody.commandCodeLenses':
                         return true
-                    case 'cody.experimental.guardrails':
-                        return true
                     case 'cody.codeActions.enabled':
                         return true
                     case 'cody.commandHints.enabled':
@@ -118,7 +116,6 @@ describe('getConfiguration', () => {
             commandCodeLenses: true,
             experimentalSupercompletions: false,
             experimentalTracing: true,
-            experimentalGuardrails: true,
             experimentalCommitMessage: true,
             experimentalNoodle: false,
             codeActions: true,
