@@ -839,7 +839,6 @@ export const DEFAULT_VSCODE_SETTINGS = {
     experimentalGuardrails: false,
     experimentalSupercompletions: false,
     experimentalTracing: false,
-    experimentalGithubAccessToken: '',
     experimentalCommitMessage: true,
     experimentalNoodle: false,
     codeActions: true,

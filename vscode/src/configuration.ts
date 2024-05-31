@@ -146,8 +146,6 @@ export function getConfiguration(
 
         experimentalChatContextRanker: getHiddenSetting('experimental.chatContextRanker', false),
 
-        experimentalGithubAccessToken: getHiddenSetting('experimental.github.accessToken', ''),
-
         autocompleteExperimentalHotStreak: getHiddenSetting(
             'autocomplete.experimental.hotStreak',
             false

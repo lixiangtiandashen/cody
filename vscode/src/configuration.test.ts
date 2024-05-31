@@ -98,8 +98,6 @@ describe('getConfiguration', () => {
                         return false
                     case 'cody.experimental.noodle':
                         return false
-                    case 'cody.experimental.github.accessToken':
-                        return ''
                     default:
                         throw new Error(`unexpected key: ${key}`)
                 }
@@ -125,7 +123,6 @@ describe('getConfiguration', () => {
             experimentalGuardrails: true,
             experimentalCommitMessage: true,
             experimentalNoodle: false,
-            experimentalGithubAccessToken: '',
             codeActions: true,
             commandHints: true,
             isRunningInsideAgent: false,
