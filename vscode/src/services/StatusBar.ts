@@ -107,7 +107,7 @@ export function createStatusBar(): CodyStatusBar {
 
         if (!authStatus?.isLoggedIn) {
             // Bring up the sidebar view
-            void vscode.commands.executeCommand('cody.focus')
+            void vscode.commands.executeCommand('cody.chat.focus')
             return
         }
 
