@@ -1,5 +1,4 @@
 import type { ContextItem, ContextItemWithContent } from '../codebase-context/messages'
-import type { Configuration } from '../configuration'
 import { openCtx } from '../context/openctx/api'
 import { logDebug } from '../logger'
 import type { PromptString } from '../prompt/prompt-string'
@@ -102,9 +101,7 @@ export const SYMBOL_CONTEXT_MENTION_PROVIDER: ContextMentionProviderMetadata<'sy
 }
 
 /** Metadata for all registered {@link ContextMentionProvider}s. */
-export async function allMentionProvidersMetadata(
-    config: Pick<Configuration, 'experimentalNoodle' | 'experimentalURLContext'>
-): Promise<ContextMentionProviderMetadata[]> {
+export async function allMentionProvidersMetadata(): Promise<ContextMentionProviderMetadata[]> {
     const items = [
         FILE_CONTEXT_MENTION_PROVIDER,
         SYMBOL_CONTEXT_MENTION_PROVIDER,
