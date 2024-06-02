@@ -17,6 +17,7 @@ import { build } from 'esbuild'
         external: ['typescript'],
         alias: {
             vscode: path.resolve(process.cwd(), 'src', 'vscode-shim.ts'),
+            lexical: path.resolve(process.cwd(), '../vscode/build/lexical-package-fix'),
 
             // Build from TypeScript sources so we don't need to run `tsc -b` in the background
             // during dev.

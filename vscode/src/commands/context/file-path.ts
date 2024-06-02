@@ -13,11 +13,14 @@ import type { URI } from 'vscode-uri'
 /**
  * Generate ContextFile for a file URI.
  */
-export async function getContextFileFromUri(file: URI, range?: vscode.Range): Promise<ContextItem[]> {
+export async function getContextFileFromUri(
+    file: URI,
+    range?: vscode.Range
+): Promise<ContextItem | null> {
     return wrapInActiveSpan('commands.context.filePath', async span => {
         try {
             if (await contextFiltersProvider.isUriIgnored(file)) {
-                return []
+                return null
             }
 
             const doc = await vscode.workspace.openTextDocument(file)
@@ -29,19 +32,17 @@ export async function getContextFileFromUri(file: URI, range?: vscode.Range): Pr
             range = range ?? new vscode.Range(0, 0, endLine, 0)
             const size = TokenCounter.countTokens(content)
 
-            return [
-                {
-                    type: 'file',
-                    content,
-                    uri: file,
-                    source: ContextItemSource.Editor,
-                    range: toRangeData(range),
-                    size,
-                },
-            ] satisfies ContextItem[]
+            return {
+                type: 'file',
+                content,
+                uri: file,
+                source: ContextItemSource.Editor,
+                range: toRangeData(range),
+                size,
+            }
         } catch (error) {
             logError('getContextFileFromUri', 'failed', { verbose: error })
-            return []
+            return null
         }
     })
 }

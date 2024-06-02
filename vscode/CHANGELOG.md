@@ -11,6 +11,8 @@ This is a log of all notable changes to Cody for VS Code. [Unreleased] changes a
 
 ### Changed
 
+- Chat: Show "Explain Code" and other commands in a more pleasant way, with @-mentions, in the chat. [pull/4424](https://github.com/sourcegraph/cody/pull/4424)
+
 ## [1.20.0]
 
 ### Added

@@ -1,7 +1,13 @@
 import { expect } from '@playwright/test'
 
 import * as mockServer from '../fixtures/mock-server'
-import { expectContextCellCounts, getContextCell, sidebarExplorer, sidebarSignin } from './common'
+import {
+    chatInputMentions,
+    expectContextCellCounts,
+    getContextCell,
+    sidebarExplorer,
+    sidebarSignin,
+} from './common'
 import { type DotcomUrlOverride, type ExpectedEvents, test as baseTest } from './helpers'
 
 const test = baseTest.extend<DotcomUrlOverride>({ dotcomUrl: mockServer.SERVER_URL })
@@ -100,13 +106,27 @@ test.extend<ExpectedEvents>({
     // For chat command, selection context is always included as it's a user-specified context item.
     await expect(chatPanel.getByRole('link', { name: 'index.html:2-10' })).toBeVisible()
 
+    // The mentions in the command should show up as mentions.
+    const firstChatInput = chatPanel.getByRole('textbox', { name: 'Chat message' }).first()
+    await expect(chatInputMentions(firstChatInput)).toHaveText(['@index.html:2-10', '@index.html:1-11'])
+
+    // When the message is resent, ensure that the same number of context items are included.
+    await firstChatInput.focus()
+    await firstChatInput.press('Enter')
+    // TODO(sqs): This is currently failing. The behavior when I run it is `{ files: 2 }`, but in
+    // the e2e test it is `{ files: 1 }` for some reason, and the multiple ranges in the same file
+    // are collapsed to one mention.
+    //
+    // await expectContextCellCounts(contextCell, { files: 2 })
+
     // Smell Command
     // Running a command again should reuse the current cursor position
     await expect(page.getByText('Find Code Smells')).toBeVisible()
     await page.getByText('Find Code Smells').click()
-    await expectContextCellCounts(contextCell, { files: 1 })
+    await expectContextCellCounts(contextCell, { files: 2 })
     await contextCell.click()
     await expect(chatPanel.getByRole('link', { name: 'index.html:2-10' })).toBeVisible()
+    await expect(chatInputMentions(firstChatInput)).toHaveText(['@index.html:2-10', '@index.html:1-11'])
 })
 
 test.extend<ExpectedEvents>({

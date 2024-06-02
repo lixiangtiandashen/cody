@@ -92,12 +92,8 @@ export const ContextCell: React.FunctionComponent<{
                                     source={item.source}
                                     range={item.range}
                                     title={item.title}
-                                    isTooLarge={
-                                        item.type === 'file' && item.isTooLarge && item.source === 'user'
-                                    }
-                                    isIgnored={
-                                        item.type === 'file' && item.isIgnored && item.source === 'user'
-                                    }
+                                    isTooLarge={item.isTooLarge}
+                                    isIgnored={item.isIgnored}
                                     className={clsx(styles.contextItem, MENTION_CLASS_NAME)}
                                     linkClassName={styles.contextItemLink}
                                 />

@@ -10,7 +10,7 @@ import {
 import * as vscode from 'vscode'
 import { getEditor } from '../../editor/active-editor'
 
-export async function getContextFileFromCurrentFile(): Promise<ContextItem[]> {
+export async function getContextFileFromCurrentFile(): Promise<ContextItem | null> {
     return wrapInActiveSpan('commands.context.file', async span => {
         try {
             const editor = getEditor()
@@ -20,9 +20,13 @@ export async function getContextFileFromCurrentFile(): Promise<ContextItem[]> {
             }
 
             if (await contextFiltersProvider.isUriIgnored(document.uri)) {
-                return []
+                return null
             }
 
+            // In the current implementation of commands, it's important to specify the full file
+            // range here so that the selected range (e.g., for "Explain Code") is emitted
+            // separately as context. Otherwise, the model is unlikely to be able to figure out what
+            // portion of the file the user actually wants to be explained.
             const selection = new vscode.Selection(
                 0,
                 0,
@@ -37,19 +41,17 @@ export async function getContextFileFromCurrentFile(): Promise<ContextItem[]> {
                 throw new Error('No content')
             }
 
-            return [
-                {
-                    type: 'file',
-                    uri: document.uri,
-                    content,
-                    source: ContextItemSource.Editor,
-                    range: toRangeData(selection),
-                    size,
-                } satisfies ContextItem,
-            ]
+            return {
+                type: 'file',
+                uri: document.uri,
+                content,
+                source: ContextItemSource.Editor,
+                range: toRangeData(selection),
+                size,
+            }
         } catch (error) {
             logError('getContextFileFromCurrentFile', 'failed', { verbose: error })
-            return []
+            return null
         }
     })
 }
